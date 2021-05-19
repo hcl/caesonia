@@ -148,7 +148,7 @@ PKG =		dkimproxy \
 		dovecot-pigeonhole \
 		rspamd \
 		opensmtpd-extras \
-		gnupg-2.2.12
+		gnupg
 
 #-8<-----------	[ cut here ] --------------------------------------------------^
 
