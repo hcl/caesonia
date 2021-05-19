@@ -359,7 +359,7 @@ afterinstall:
 	rcctl enable unbound sshd httpd dkimproxy_out rspamd dovecot smtpd
 	rcctl restart unbound sshd httpd
 	ftp -o - https://${HOSTNAME}/index.html \
-		|| acme-client -ADv ${HOSTNAME}
+		|| acme-client -v ${HOSTNAME}
 	ocspcheck -vNo ${BASESYSCONFDIR}/ssl/acme/${HOSTNAME}.ocsp.resp.der \
 		${BASESYSCONFDIR}/ssl/acme/${HOSTNAME}.fullchain.pem
 	rcctl restart httpd dkimproxy_out rspamd dovecot smtpd
