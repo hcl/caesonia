@@ -181,7 +181,7 @@ private		type=dir uname=_rspamd gname=_dkimproxy mode=0750
 # ./home
 home		type=dir mode=0755
 
-
+## DSYNC_START
 # ./home/dsync
 dsync		type=dir gname=dsync mode=0755 optional
 
@@ -201,7 +201,7 @@ dsync		type=dir gname=dsync mode=0755 optional
 
 # ./home/dsync
 ..
-
+## DSYNC_END
 # ./home
 ..
 

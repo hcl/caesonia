@@ -87,6 +87,11 @@ SSHCONF =	${BASESYSCONFDIR:S|^/||}/ssh/sshd_banner \
 
 MTREECONF =	${BASESYSCONFDIR:S|^/||}/mtree/special.local
 
+MTREE_DSYNC_START != awk '/DSYNC_START/ {print FNR}' \
+	${.CURDIR}/src/${MTREECONF:M*special.local}
+MTREE_DSYNC_END != awk '/DSYNC_END/ {print FNR}' \
+	${.CURDIR}/src/${MTREECONF:M*special.local}
+
 DKIMPROXYCONF =	${BASESYSCONFDIR:S|^/||}/dkimproxy_out.conf
 
 DOVECOTCONF =	${BASESYSCONFDIR:S|^/||}/dovecot/dovecot-trash.conf.ext \
@@ -241,6 +246,11 @@ config:
 		-e '/hermes/d' \
 		${WRKSRC}/${TLSRPT:M*mta-sts.txt} \
 		${WRKSRC}/${SYSCONF:M*acme-client.conf}
+	sed -i \
+		-e '/replicator/d' \
+		${WRKSRC}/${SYSCONF:M*daily.local}
+	sed -i ${MTREE_DSYNC_START},${MTREE_DSYNC_END}d \
+		${WRKSRC}/${MTREECONF:M*special.local}
 	find ${WRKSRC} -type f -exec sed -i \
 		-e 's|mercury|${PRIMARY_HOST}|' \
 		{} +
