@@ -79,9 +79,17 @@ mail		type=dir gname=wheel mode=0755
     vdomains	gname=wheel mode=0644
     virtual
     whitelist
+
+# ./etc/mail/dkim
+dkim		type=dir uname=_dkimsign gname=_dkimsign mode=0770
+    private.key uname=_dkimsign  gname=_dkimsign mode=0440
+    public.key uname=_dkimsign  gname=_dkimsign mode=0644
+
 # ./etc/mail
 ..
 
+# ./etc
+..
 
 # ./etc/mtree
 /set type=file gname=wheel mode=0644

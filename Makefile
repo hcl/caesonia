@@ -148,7 +148,7 @@ WRKSRC ?=	${HOSTNAME:S|^|${.CURDIR}/|}
 RELEASE !!=	uname -r
 QUEUE !!=	openssl rand -hex 16
 
-PKG =		dkimproxy \
+PKG =	opensmtpd-filter-dkimsign \
 		dovecot \
 		dovecot-pigeonhole \
 		rspamd \
@@ -201,13 +201,20 @@ config:
 		${WRKSRC}/${MAILCONF:M*virtual}
 	echo @${_VHOSTS_NAME} >> ${WRKSRC}/${MAILCONF:M*whitelist}
 	sed -i \
-		-e '/^domain/ s|$$|,${_VHOSTS_NAME}|' \
-		${WRKSRC}/${DKIMPROXYCONF:M*dkimproxy_out.conf}
+		-e 's/-d example.net \\/-d ${_VHOSTS_NAME} \\ \
+	-d example.net \\/'
+		${WRKSRC}/${MAILCONF:M*smtpd.conf}
 . endfor
+	sed -i \
+		-e '/example.net/d' \
+		${WRKSRC}/${MAILCONF:M*smtpd.conf}
 .endif
 	sed -i \
-		-e '/^domain/s|,example.net||' \
-		${WRKSRC}/${DKIMPROXYCONF:M*dkimproxy_out.conf}
+		-e '/example.net/d' \
+		${WRKSRC}/${MAILCONF:M*smtpd.conf}
+	sed -i \
+		-e '/example.com/${DOMAIN_NAME}/' \
+		${WRKSRC}/${MAILCONF:M*smtpd.conf}
 	sed -i \
 		-e '/example.net/d' \
 		${WRKSRC}/${MAILCONF:M*vdomains} \
@@ -298,7 +305,7 @@ clean:
 	@rm -r ${WRKSRC}
 
 beforeinstall: upgrade
-	-rcctl stop smtpd httpd dkimproxy_out rspamd dovecot
+	-rcctl stop smtpd httpd rspamd dovecot
 .for _PKG in ${PKG}
 	env PKG_PATH= pkg_info ${_PKG} > /dev/null || pkg_add ${_PKG}
 .endfor
@@ -356,23 +363,23 @@ afterinstall:
 		doas -u vmail /usr/local/bin/gpg2 \
 			-o ${VARBASE}/lib/gnupg/wks/${DOMAIN_NAME}/hu/54f6ry7x1qqtpor16txw5gdmdbbh6a73 \
 			--export-options export-minimal --export key-submission@${DOMAIN_NAME}
-	[[ -r ${BASESYSCONFDIR}/ssl/dkim/private/private.key ]] || (umask 077; \
-		openssl genrsa -out ${BASESYSCONFDIR}/ssl/dkim/private/private.key 2048; \
-		openssl rsa -in ${BASESYSCONFDIR}/ssl/dkim/private/private.key \
-			-pubout -out ${BASESYSCONFDIR}/ssl/dkim/public.key)
+	[[ -r ${BASESYSCONFDIR}/mail/dkim/private.key ]] || (umask 077; \
+		doas -u _dkimsign openssl genrsa -out ${BASESYSCONFDIR}/mail/dkim/private.key 2048; \
+		doas -u _dkimsign openssl rsa -in ${BASESYSCONFDIR}/mail/dkim/private.key \
+			-pubout -out ${BASESYSCONFDIR}/mail/dkim/public.key)
 	sed -i '/^console/s/ secure//' ${BASESYSCONFDIR}/ttys
 	mtree -qef ${BASESYSCONFDIR}/mtree/special -p / -U
 	mtree -qef ${BASESYSCONFDIR}/mtree/special.local -p / -U
 	pfctl -f /etc/pf.conf
 	rcctl disable check_quotas sndiod
 	-rcctl check sndiod && rcctl stop sndiod
-	rcctl enable unbound sshd httpd dkimproxy_out rspamd dovecot smtpd
+	rcctl enable unbound sshd httpd rspamd dovecot smtpd
 	rcctl restart unbound sshd httpd
 	ftp -o - https://${HOSTNAME}/index.html \
 		|| acme-client -v ${HOSTNAME}
 	ocspcheck -vNo ${BASESYSCONFDIR}/ssl/acme/${HOSTNAME}.ocsp.resp.der \
 		${BASESYSCONFDIR}/ssl/acme/${HOSTNAME}.fullchain.pem
-	rcctl restart httpd dkimproxy_out rspamd dovecot smtpd
+	rcctl restart httpd rspamd dovecot smtpd
 
 .PHONY: upgrade
 .USE: upgrade
