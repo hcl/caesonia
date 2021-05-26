@@ -200,9 +200,7 @@ config:
 			${VIRTUAL_USER}@${DOMAIN_NAME}|;}' \
 		${WRKSRC}/${MAILCONF:M*virtual}
 	echo @${_VHOSTS_NAME} >> ${WRKSRC}/${MAILCONF:M*whitelist}
-	sed -i \
-		-e 's/-d example.net \\/-d ${_VHOSTS_NAME} \\ \
-	-d example.net \\/'
+	perl -pi -plne 'print "\t-d ${_VHOSTS_NAME} \\" if(/-d example.net/);' \
 		${WRKSRC}/${MAILCONF:M*smtpd.conf}
 . endfor
 	sed -i \
@@ -213,7 +211,7 @@ config:
 		-e '/example.net/d' \
 		${WRKSRC}/${MAILCONF:M*smtpd.conf}
 	sed -i \
-		-e '/example.com/${DOMAIN_NAME}/' \
+		-e 's/example.com/${DOMAIN_NAME}/' \
 		${WRKSRC}/${MAILCONF:M*smtpd.conf}
 	sed -i \
 		-e '/example.net/d' \
