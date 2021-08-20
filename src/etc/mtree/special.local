@@ -165,17 +165,6 @@ private		type=dir mode=0700
 # ./etc/ssl/acme
 ..
 
-
-# ./etc/ssl/dkim
-dkim		type=dir mode=0755
-    public.key
-
-# ./etc/ssl/dkim/private
-private		type=dir uname=_rspamd gname=_dkimproxy mode=0750
-    private.key	uname=_rspamd gname=_dkimproxy mode=0440
-# ./etc/ssl/dkim/private
-..
-
 # ./etc/ssl/dkim
 ..
 
